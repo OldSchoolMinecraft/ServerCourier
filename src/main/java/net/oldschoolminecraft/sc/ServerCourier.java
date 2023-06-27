@@ -122,11 +122,21 @@ public class ServerCourier extends JavaPlugin
             Lookup lookup = new Lookup(host, Type.SRV);
             Record[] records = lookup.run();
             if (lookup.getResult() == Lookup.SUCCESSFUL)
-                return records.length > 0 ? ((SRVRecord) records[0]).getPort() : 26553;
-            else return 26553;
+            {
+                if (records.length > 0)
+                {
+                    java.util.Arrays.sort(records, (r1, r2) ->
+                    {
+                        int priority1 = ((SRVRecord) r1).getPriority();
+                        int priority2 = ((SRVRecord) r2).getPriority();
+                        return Integer.compare(priority1, priority2);
+                    });
+                    return ((SRVRecord) records[0]).getPort();
+                } else return 26553; // Default port when no SRV records are found
+            } else return 26553; // Default port when lookup fails
         } catch (TextParseException e) {
             e.printStackTrace();
-            return 26553;
+            return 26553; // Default port when an exception occurs
         }
     }
 
